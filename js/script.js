@@ -83,7 +83,13 @@ function click_box_from(x, y){
 function click_box_to(x, y){
   map[x][y] = map[move_from_x][move_from_y];
   map[move_from_x][move_from_y] = " ";
+  turn_move();
+  mark_moves_from();
   show_map();
+}
+
+function turn_move(){
+  move_color = move_color == "white" ? "black" : "white";
 }
 
 function figure_to_html(figure) {
@@ -130,6 +136,10 @@ function show_map() {
   document.getElementById("chess").innerHTML = html;
 }
 
-init_map();
-mark_moves_from();
-show_map();
+function start(){
+  init_map();
+  mark_moves_from();
+  show_map();
+}
+
+start();
