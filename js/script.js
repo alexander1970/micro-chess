@@ -69,9 +69,11 @@ function is_correct_king_move(sx, sy, dx, dy) {
   return (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1);
 }
 
-function is_correct_queen_move(sx, sy, dx, dy) {
+function is_correct_line_move(sx, sy, dx, dy, figure) {
   let delta_x = Math.sign(dx - sx);
   let delta_y = Math.sign(dy - sy);
+
+  if (!is_correct_line_delta(delta_x, delta_y, figure)) return false;
   do {
     sx += delta_x;
     sy += delta_y;
@@ -80,16 +82,31 @@ function is_correct_queen_move(sx, sy, dx, dy) {
   return false;
 }
 
-function is_correct_bishop_move(sx, sy, dx, dy) {
-  let delta_x = Math.sign(dx - sx);
-  let delta_y = Math.sign(dy - sy);
-  if (Math.abs(delta_x) + Math.abs(delta_y) != 2) return false;
-  do {
-    sx += delta_x;
-    sy += delta_y;
-    if (sx == dx && sy == dy) return true;
-  } while (is_empty(sx, sy));
+function is_correct_line_delta(delta_x, delta_y, figure) {
+  if (is_rook(figure)) return is_correct_rook_delta(delta_x, delta_y);
+  if (is_bishop(figure)) return is_correct_bishop_delta(delta_x, delta_y);
+  if (is_queen(figure)) return is_correct_queen_delta(delta_x, delta_y);
   return false;
+}
+
+function is_correct_rook_delta(delta_x, delta_y) {
+  return Math.abs(delta_x) + Math.abs(delta_y) == 1;
+}
+
+function is_correct_bishop_delta(delta_x, delta_y) {
+  return Math.abs(delta_x) + Math.abs(delta_y) == 2;
+}
+
+function is_correct_queen_delta(delta_x, delta_y) {
+  return true;
+}
+
+function is_correct_queen_move(sx, sy, dx, dy) {
+  return is_correct_line_move(sx, sy, dx, dy, "Q");
+}
+
+function is_correct_bishop_move(sx, sy, dx, dy) {
+  return is_correct_line_move(sx, sy, dx, dy, "B");
 }
 
 function is_correct_knight_move(sx, sy, dx, dy) {
@@ -98,15 +115,7 @@ function is_correct_knight_move(sx, sy, dx, dy) {
 }
 
 function is_correct_rook_move(sx, sy, dx, dy) {
-  let delta_x = Math.sign(dx - sx);
-  let delta_y = Math.sign(dy - sy);
-  if (Math.abs(delta_x) + Math.abs(delta_y) != 1) return false;
-  do {
-    sx += delta_x;
-    sy += delta_y;
-    if (sx == dx && sy == dy) return true;
-  } while (is_empty(sx, sy));
-  return false;
+  return is_correct_line_move(sx, sy, dx, dy, "R");
 }
 
 function is_empty(x, y) {
