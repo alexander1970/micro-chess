@@ -128,6 +128,16 @@ function on_map(x, y) {
 }
 
 function is_correct_pawn_move(sx, sy, dx, dy) {
+  if (get_color(sx, sy) == "white") return is_correct_white_pawn_move(sx, sy, dx, dy);
+  if (get_color(sx, sy) == "black") return is_correct_black_pawn_move(sx, sy, dx, dy);
+  return false;
+}
+
+function is_correct_white_pawn_move(sx, sy, dx, dy) {
+  return true;
+}
+
+function is_correct_black_pawn_move(sx, sy, dx, dy) {
   return true;
 }
 
