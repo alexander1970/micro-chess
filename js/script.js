@@ -5,7 +5,7 @@ let move_color = "white";
 let move_from_x;
 let move_from_y;
 
-function  init_map() {
+function  init_map() {    // массив позиции
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
     ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
@@ -134,11 +134,21 @@ function is_correct_pawn_move(sx, sy, dx, dy) {
 }
 
 function is_correct_white_pawn_move(sx, sy, dx, dy) {
+  if (sy < 1 || sy > 6) return false;
+  if (is_pawn_passant()) return true;
+  if (!is_empty(dx, dy)) { // это взятие?
+    if (Math.abs(dx - sx) != 1) return false;  // 1 шаг влево/вправо
+    return dy - sy == 1;
+  }
   return true;
 }
 
 function is_correct_black_pawn_move(sx, sy, dx, dy) {
   return true;
+}
+
+function is_pawn_passant() {
+  return false;
 }
 
 function mark_moves_from() {
@@ -203,7 +213,7 @@ function turn_move(){
   move_color = move_color == "white" ? "black" : "white";
 }
 
-function figure_to_html(figure) {
+function figure_to_html(figure) { // Фигуры
   switch (figure) {
     case "K": return "&#9812;"; case "k": return "&#9818;";
     case "Q": return "&#9813;"; case "q": return "&#9819;";
@@ -215,7 +225,7 @@ function figure_to_html(figure) {
   }
 }
 
-function show_map() {
+function show_map() {    // вывод доски
   let html = "<table border='1'cellpadding='2' cellspacing='0'>";
   let x1 = ["a", "b", "c", "d", "e", "f", "g", "h"];
   let color;
