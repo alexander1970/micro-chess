@@ -33,29 +33,121 @@ function init_inf() {
   ];
 }
 
+function can_move(sx, sy, dx, dy){
+  if (!can_move_from(sx, sy))
+    return false;
+  if (!can_move_to(dx, dy))
+    return false;
+  return is_correct_move(sx, sy, dx, dy);
+}
+
+function is_correct_move(sx, sy, dx, dy) {
+  let figure = map[sx][sy];
+  if (is_king(figure))
+    return is_correct_king_move(sx, sy, dx, dy);
+  if (is_queen(figure))
+    return is_correct_queen_move(sx, sy, dx, dy);
+  if (is_bishop(figure))
+    return is_correct_bishop_move(sx, sy, dx, dy);
+  if (is_knight(figure))
+    return is_correct_knight_move(sx, sy, dx, dy);
+  if (is_rook(figure))
+    return is_correct_rook_move(sx, sy, dx, dy);
+  if (is_pawn(figure))
+    return is_correct_pawn_move(sx, sy, dx, dy);
+  return true;
+}
+
+function is_king  (figure) { return figure.toUpperCase() == "K"; }
+function is_queen (figure) { return figure.toUpperCase() == "Q"; }
+function is_bishop(figure) { return figure.toUpperCase() == "B"; }
+function is_knight(figure) { return figure.toUpperCase() == "N"; }
+function is_rook  (figure) { return figure.toUpperCase() == "R"; }
+function is_pawn  (figure) { return figure.toUpperCase() == "P"; }
+
+function is_correct_king_move(sx, sy, dx, dy) {
+  return (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1);
+}
+
+function is_correct_queen_move(sx, sy, dx, dy) {
+  let delta_x = Math.sign(dx - sx);
+  let delta_y = Math.sign(dy - sy);
+  do {
+    sx += delta_x;
+    sy += delta_y;
+    if (sx == dx && sy == dy) return true;
+  } while (is_empty(sx, sy));
+  return false;
+}
+
+function is_correct_bishop_move(sx, sy, dx, dy) {
+  let delta_x = Math.sign(dx - sx);
+  let delta_y = Math.sign(dy - sy);
+  if (Math.abs(delta_x) + Math.abs(delta_y) != 2) return false;
+  do {
+    sx += delta_x;
+    sy += delta_y;
+    if (sx == dx && sy == dy) return true;
+  } while (is_empty(sx, sy));
+  return false;
+}
+
+function is_correct_knight_move(sx, sy, dx, dy) {
+  return (Math.abs(dx - sx) == 1 && Math.abs(dy - sy) == 2) ||
+         (Math.abs(dx - sx) == 2 && Math.abs(dy - sy) == 1);
+}
+
+function is_correct_rook_move(sx, sy, dx, dy) {
+  let delta_x = Math.sign(dx - sx);
+  let delta_y = Math.sign(dy - sy);
+  if (Math.abs(delta_x) + Math.abs(delta_y) != 1) return false;
+  do {
+    sx += delta_x;
+    sy += delta_y;
+    if (sx == dx && sy == dy) return true;
+  } while (is_empty(sx, sy));
+  return false;
+}
+
+function is_empty(x, y) {
+  if (!on_map(x, y)) return false;
+  return map[x][y] == " ";
+}
+
+function on_map(x, y) {
+  return (x >= 0 && x <= 7 && y >= 0 && y <= 7);
+}
+
+function is_correct_pawn_move(sx, sy, dx, dy) {
+  return true;
+}
+
 function mark_moves_from() {
   init_inf();
-  for (let x = 0; x <= 7; x++)
-    for (let y = 0; y <= 7; y++)
-      if (can_move_from(x, y))
-        inf[x][y] = 1;
+  for (let sx = 0; sx <= 7; sx++)
+    for (let sy = 0; sy <= 7; sy++)
+      for (let dx = 0; dx <= 7; dx++)
+        for (let dy = 0; dy <= 7; dy++)
+          if (can_move(sx, sy, dx, dy))
+            inf[sx][sy] = 1;
 }
 
 function mark_moves_to(){
   init_inf();
   for (let x = 0; x <= 7; x++)
     for (let y = 0; y <= 7; y++)
-      if (can_move_to(x, y))
+      if (can_move(move_from_x, move_from_y, x, y))
         inf[x][y] = 2;
 }
 
 function can_move_from(x, y) {
+  if (!on_map(x, y)) return false;
   return get_color(x, y) == move_color;
 }
 
 function can_move_to(x, y) {
-  if (map[x][y] == " ")
-    return true;
+  if (!on_map(x, y)) return false;
+  if (map[x][y] == " ") return true;
   return get_color(x, y) !== move_color; // съесть фигуру противника
 }
 
