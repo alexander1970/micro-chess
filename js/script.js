@@ -19,7 +19,7 @@ function  init_map() {    // массив позиции
   ];
 }
 
-function init_inf() {
+function init_inf() { // куда можно хидить
   inf =
   [
     [" ", " ", " ", " ", " ", " ", " ", " ",],
@@ -140,7 +140,13 @@ function is_correct_white_pawn_move(sx, sy, dx, dy) {
     if (Math.abs(dx - sx) != 1) return false;  // 1 шаг влево/вправо
     return dy - sy == 1;
   }
-  return true;
+  if (dx != sx) return false;
+  if (dy - sy == 1) return true;
+  if (dy - sy == 2) {// на две клетки
+    if (sy != 1) return false;
+    return is_empty(sx, sy + 1);
+  }
+  return false;
 }
 
 function is_correct_black_pawn_move(sx, sy, dx, dy) {
@@ -151,7 +157,7 @@ function is_pawn_passant() {
   return false;
 }
 
-function mark_moves_from() {
+function mark_moves_from() { // (урок 6)
   init_inf();
   for (let sx = 0; sx <= 7; sx++)
     for (let sy = 0; sy <= 7; sy++)
