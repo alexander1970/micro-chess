@@ -4,8 +4,8 @@ let inf = Array();
 let move_color = "white";
 let move_from_x;
 let move_from_y;
-let pawn_attack_x = 1; // координаты битого поля
-let pawn_attack_y = 5;
+let pawn_attack_x; // координаты битого поля
+let pawn_attack_y;
 
 function  init_map() {    // массив позиции
   map =
@@ -212,12 +212,32 @@ function click_box_from(x, y){
   show_map();
 }
 
-function click_box_to(x, y){
-  map[x][y] = map[move_from_x][move_from_y];
+function click_box_to(to_x, to_y){
+  from_figure = map[move_from_x][move_from_y];
+  to_figure = map[to_x][to_y];
+
+  map[to_x][to_y] = from_figure;
   map[move_from_x][move_from_y] = " ";
+
+  if (is_pawn(from_figure))
+    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
+      map[to_x][to_y - 1] = " "; // white
+
+  check_pawn_attack(from_figure, to_x, to_y);
+
   turn_move();
   mark_moves_from();
   show_map();
+}
+
+function check_pawn_attack(from_figure, to_x, to_y) {
+  pawn_attack_x = -1;
+  pawn_attack_y = -1;
+  if (is_pawn(from_figure))
+    if (Math.abs(to_y - move_from_y) == 2){
+      pawn_attack_x = move_from_x;
+      pawn_attack_y = (move_from_y + to_y) / 2;
+    }
 }
 
 function turn_move(){
