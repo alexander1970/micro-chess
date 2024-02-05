@@ -130,35 +130,32 @@ function on_map(x, y) {
 }
 
 function is_correct_pawn_move(sx, sy, dx, dy) {
-  if (get_color(sx, sy) == "white") return is_correct_white_pawn_move(sx, sy, dx, dy);
-  if (get_color(sx, sy) == "black") return is_correct_black_pawn_move(sx, sy, dx, dy);
+  if (sy < 1 || sy > 6) return false;
+  if (get_color(sx, sy) == "white") return is_correct_sign_pawn_move(sx, sy, dx, dy, +1);
+  if (get_color(sx, sy) == "black") return is_correct_sign_pawn_move(sx, sy, dx, dy, -1);
   return false;
 }
 
-function is_correct_white_pawn_move(sx, sy, dx, dy) {
-  if (sy < 1 || sy > 6) return false;
-  if (is_pawn_passant(sx, sy, dx, dy)) return true;
+function is_correct_sign_pawn_move(sx, sy, dx, dy, sign) {
+  if (is_pawn_passant(sx, sy, dx, dy, sign)) return true;
   if (!is_empty(dx, dy)) { // это взятие?
     if (Math.abs(dx - sx) != 1) return false;  // 1 шаг влево/вправо
-    return dy - sy == 1;
+    return dy - sy == sign;
   }
   if (dx != sx) return false;
-  if (dy - sy == 1) return true;
-  if (dy - sy == 2) {// на две клетки
-    if (sy != 1) return false;
-    return is_empty(sx, sy + 1);
+  if (dy - sy == sign) return true;
+  if (dy - sy == sign * 2) {// на две клетки
+    if (sy != 1 && sy != 6) return false;
+    return is_empty(sx, sy + sign);
   }
   return false;
 }
 
-function is_correct_black_pawn_move(sx, sy, dx, dy) {
-  return true;
-}
-
-function is_pawn_passant(sx, sy, dx, dy) { // Порверка битого поля
+function is_pawn_passant(sx, sy, dx, dy, sign) { // Порверка битого поля
   if (!(dx == pawn_attack_x && dy == pawn_attack_y)) return false;
-  if (sy != 4) return false; // только с 4 горизонтали возможно взятие на проходе
-  if (dy - sy != 1) return false;
+  if (sign == +1 && sy != 4) return false; // для белых только с 4 горизонтали возможно взятие на проходе
+  if (sign == -1 && sy != 3) return false; // для чёрных только с 3 горизонтали возможно взятие на проходе
+  if (dy - sy != sign) return false;
   return (Math.abs(dx - sx) == 1);
 }
 
@@ -234,7 +231,7 @@ function check_pawn_attack(from_figure, to_x, to_y) {
   pawn_attack_x = -1;
   pawn_attack_y = -1;
   if (is_pawn(from_figure))
-    if (Math.abs(to_y - move_from_y) == 2){
+    if (Math.abs(to_y - move_from_y) == 2){   // строка 262 (урок 25)
       pawn_attack_x = move_from_x;
       pawn_attack_y = (move_from_y + to_y) / 2;
     }
