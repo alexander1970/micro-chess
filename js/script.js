@@ -4,6 +4,8 @@ let inf = Array();
 let move_color = "white";
 let move_from_x;
 let move_from_y;
+let pawn_attack_x = 1; // координаты битого поля
+let pawn_attack_y = 5;
 
 function  init_map() {    // массив позиции
   map =
@@ -135,7 +137,7 @@ function is_correct_pawn_move(sx, sy, dx, dy) {
 
 function is_correct_white_pawn_move(sx, sy, dx, dy) {
   if (sy < 1 || sy > 6) return false;
-  if (is_pawn_passant()) return true;
+  if (is_pawn_passant(sx, sy, dx, dy)) return true;
   if (!is_empty(dx, dy)) { // это взятие?
     if (Math.abs(dx - sx) != 1) return false;  // 1 шаг влево/вправо
     return dy - sy == 1;
@@ -153,8 +155,11 @@ function is_correct_black_pawn_move(sx, sy, dx, dy) {
   return true;
 }
 
-function is_pawn_passant() {
-  return false;
+function is_pawn_passant(sx, sy, dx, dy) { // Порверка битого поля
+  if (!(dx == pawn_attack_x && dy == pawn_attack_y)) return false;
+  if (sy != 4) return false; // только с 4 горизонтали возможно взятие на проходе
+  if (dy - sy != 1) return false;
+  return (Math.abs(dx - sx) == 1);
 }
 
 function mark_moves_from() { // (урок 6)
