@@ -216,10 +216,6 @@ function click_box_to(to_x, to_y){
   map[to_x][to_y] = from_figure;
   map[move_from_x][move_from_y] = " ";
 
-  if (is_pawn(from_figure))
-    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
-      map[to_x][to_y - 1] = " "; // white
-
   check_pawn_attack(from_figure, to_x, to_y);
 
   turn_move();
@@ -228,6 +224,13 @@ function click_box_to(to_x, to_y){
 }
 
 function check_pawn_attack(from_figure, to_x, to_y) {
+  if (is_pawn(from_figure))
+    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
+      if (move_color == "white")
+        map[to_x][to_y - 1] = " "; // white
+      else
+        map[to_x][to_y + 1] = " "; // black
+
   pawn_attack_x = -1;
   pawn_attack_y = -1;
   if (is_pawn(from_figure))
