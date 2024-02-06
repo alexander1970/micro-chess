@@ -213,7 +213,9 @@ function click_box_to(to_x, to_y){
   from_figure = map[move_from_x][move_from_y];
   to_figure = map[to_x][to_y];
 
-  map[to_x][to_y] = from_figure;
+  pawn_figure = promote_pawn(from_figure, to_y);
+
+  map[to_x][to_y] = pawn_figure == " " ? from_figure : pawn_figure;
   map[move_from_x][move_from_y] = " ";
 
   check_pawn_attack(from_figure, to_x, to_y);
@@ -221,6 +223,26 @@ function click_box_to(to_x, to_y){
   turn_move();
   mark_moves_from();
   show_map();
+}
+
+function promote_pawn(from_figure, to_y) {
+  if (!is_pawn(from_figure)) return " ";
+  if (!(to_y == 7 || to_y == 0)) return " ";
+
+  do {
+    figure = prompt("Select figure to promote: Q R B N", "Q")
+  } while (!(
+    is_queen(figure) ||
+    is_rook(figure) ||
+    is_bishop(figure) ||
+    is_knight(figure)
+  ));
+
+  if (move_color == "white")
+    from_figure = figure.toUpperCase();
+  else
+    from_figure =  figure.toLowerCase();
+  return from_figure;
 }
 
 function check_pawn_attack(from_figure, to_x, to_y) {
