@@ -4,8 +4,10 @@ let inf = Array();
 let move_color = "white";
 let move_from_x;
 let move_from_y;
+let pawn_attack_x; // координаты битого поля
+let pawn_attack_y;
 
-function  init_map() {
+function  init_map() {    // массив позиции
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
     ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
@@ -19,7 +21,7 @@ function  init_map() {
   ];
 }
 
-function init_inf() {
+function init_inf() { // куда можно хидить
   inf =
   [
     [" ", " ", " ", " ", " ", " ", " ", " ",],
@@ -128,10 +130,36 @@ function on_map(x, y) {
 }
 
 function is_correct_pawn_move(sx, sy, dx, dy) {
-  return true;
+  if (sy < 1 || sy > 6) return false;
+  if (get_color(sx, sy) == "white") return is_correct_sign_pawn_move(sx, sy, dx, dy, +1);
+  if (get_color(sx, sy) == "black") return is_correct_sign_pawn_move(sx, sy, dx, dy, -1);
+  return false;
 }
 
-function mark_moves_from() {
+function is_correct_sign_pawn_move(sx, sy, dx, dy, sign) {
+  if (is_pawn_passant(sx, sy, dx, dy, sign)) return true;
+  if (!is_empty(dx, dy)) { // это взятие?
+    if (Math.abs(dx - sx) != 1) return false;  // 1 шаг влево/вправо
+    return dy - sy == sign;
+  }
+  if (dx != sx) return false;
+  if (dy - sy == sign) return true;
+  if (dy - sy == sign * 2) {// на две клетки
+    if (sy != 1 && sy != 6) return false;
+    return is_empty(sx, sy + sign);
+  }
+  return false;
+}
+
+function is_pawn_passant(sx, sy, dx, dy, sign) { // Порверка битого поля
+  if (!(dx == pawn_attack_x && dy == pawn_attack_y)) return false;
+  if (sign == +1 && sy != 4) return false; // для белых только с 4 горизонтали возможно взятие на проходе
+  if (sign == -1 && sy != 3) return false; // для чёрных только с 3 горизонтали возможно взятие на проходе
+  if (dy - sy != sign) return false;
+  return (Math.abs(dx - sx) == 1);
+}
+
+function mark_moves_from() { // (урок 6)
   init_inf();
   for (let sx = 0; sx <= 7; sx++)
     for (let sy = 0; sy <= 7; sy++)
@@ -181,19 +209,64 @@ function click_box_from(x, y){
   show_map();
 }
 
-function click_box_to(x, y){
-  map[x][y] = map[move_from_x][move_from_y];
+function click_box_to(to_x, to_y){
+  from_figure = map[move_from_x][move_from_y];
+  to_figure = map[to_x][to_y];
+
+  pawn_figure = promote_pawn(from_figure, to_y);
+
+  map[to_x][to_y] = pawn_figure == " " ? from_figure : pawn_figure;
   map[move_from_x][move_from_y] = " ";
+
+  check_pawn_attack(from_figure, to_x, to_y);
+
   turn_move();
   mark_moves_from();
   show_map();
+}
+
+function promote_pawn(from_figure, to_y) {
+  if (!is_pawn(from_figure)) return " ";
+  if (!(to_y == 7 || to_y == 0)) return " ";
+
+  do {
+    figure = prompt("Select figure to promote: Q R B N", "Q")
+  } while (!(
+    is_queen(figure) ||
+    is_rook(figure) ||
+    is_bishop(figure) ||
+    is_knight(figure)
+  ));
+
+  if (move_color == "white")
+    from_figure = figure.toUpperCase();
+  else
+    from_figure =  figure.toLowerCase();
+  return from_figure;
+}
+
+function check_pawn_attack(from_figure, to_x, to_y) {
+  if (is_pawn(from_figure))
+    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
+      if (move_color == "white")
+        map[to_x][to_y - 1] = " "; // white
+      else
+        map[to_x][to_y + 1] = " "; // black
+
+  pawn_attack_x = -1;
+  pawn_attack_y = -1;
+  if (is_pawn(from_figure))
+    if (Math.abs(to_y - move_from_y) == 2){   // строка 262 (урок 25)
+      pawn_attack_x = move_from_x;
+      pawn_attack_y = (move_from_y + to_y) / 2;
+    }
 }
 
 function turn_move(){
   move_color = move_color == "white" ? "black" : "white";
 }
 
-function figure_to_html(figure) {
+function figure_to_html(figure) { // Фигуры
   switch (figure) {
     case "K": return "&#9812;"; case "k": return "&#9818;";
     case "Q": return "&#9813;"; case "q": return "&#9819;";
@@ -205,7 +278,7 @@ function figure_to_html(figure) {
   }
 }
 
-function show_map() {
+function show_map() {    // вывод доски
   let html = "<table border='1'cellpadding='2' cellspacing='0'>";
   let x1 = ["a", "b", "c", "d", "e", "f", "g", "h"];
   let color;
