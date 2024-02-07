@@ -6,6 +6,8 @@ let move_from_x;
 let move_from_y;
 let pawn_attack_x; // координаты битого поля
 let pawn_attack_y;
+let from_figure;
+let to_figure;
 
 function  init_map() {    // массив позиции
   map =
@@ -43,7 +45,11 @@ function can_move(sx, sy, dx, dy){
 }
 
 function is_check() {
-  return Math.random() < 0.2;
+  // 1. Сделать ход белых
+  // 2. найти короля белых
+  // 3. перебрать все чёрные фигуры
+  // 4. проверить, может ли чёрная фигура пойти на клетку корля
+  // 5. вернуть ход
 }
 
 function is_correct_move(sx, sy, dx, dy) {
@@ -212,14 +218,21 @@ function click_box_from(x, y){
   show_map();
 }
 
+function move_figure(sx, sy, dx, dy) { // 1. Сделать ход белых
+  from_figure = map[sx][sy];
+  to_figure = map[dx][dy];
+  map[dx][dy] = from_figure;
+  map[sx][sy] = " ";
+}
+
+function back_figure(sx, sy, dx, dy) { // 5. вернуть ход
+  map[sx][sy] = from_figure;
+  map[dx][dy] = to_figure;
+}
+
 function click_box_to(to_x, to_y){
-  from_figure = map[move_from_x][move_from_y];
-  to_figure = map[to_x][to_y];
-
-  pawn_figure = promote_pawn(from_figure, to_y);
-
-  map[to_x][to_y] = pawn_figure == " " ? from_figure : pawn_figure;
-  map[move_from_x][move_from_y] = " ";
+  move_figure(move_from_x, move_from_y, to_x, to_y);
+  promote_pawn(from_figure, to_x, to_y);
 
   check_pawn_attack(from_figure, to_x, to_y);
 
@@ -228,10 +241,9 @@ function click_box_to(to_x, to_y){
   show_map();
 }
 
-function promote_pawn(from_figure, to_y) {
-  if (!is_pawn(from_figure)) return " ";
-  if (!(to_y == 7 || to_y == 0)) return " ";
-
+function promote_pawn(from_figure, to_x, to_y) {
+  if (!is_pawn(from_figure)) return;
+  if (!(to_y == 7 || to_y == 0)) return;
   do {
     figure = prompt("Select figure to promote: Q R B N", "Q")
   } while (!(
@@ -240,12 +252,11 @@ function promote_pawn(from_figure, to_y) {
     is_bishop(figure) ||
     is_knight(figure)
   ));
-
   if (move_color == "white")
-    from_figure = figure.toUpperCase();
+    figure = figure.toUpperCase();
   else
-    from_figure =  figure.toLowerCase();
-  return from_figure;
+    figure = figure.toLowerCase();
+  map[to_x][to_y] = figure;
 }
 
 function check_pawn_attack(from_figure, to_x, to_y) {
