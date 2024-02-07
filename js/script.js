@@ -10,14 +10,14 @@ let pawn_attack_y;
 function  init_map() {    // массив позиции
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
-    ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
-    ["N", "P", " ", " ", " ", " ", "p", "n"], // x1
-    ["B", "P", " ", " ", " ", " ", "p", "b"], // x2
-    ["Q", "P", " ", " ", " ", " ", "p", "q"], // x3
-    ["K", "P", " ", " ", " ", " ", "p", "k"], // x4
-    ["B", "P", " ", " ", " ", " ", "p", "b"], // x5
-    ["N", "P", " ", " ", " ", " ", "p", "n"], // x6
-    ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
+    ["R", " ", " ", " ", " ", " ", " ", "r"], // x0
+    ["N", " ", " ", " ", " ", " ", " ", "n"], // x1
+    ["B", " ", " ", " ", " ", " ", " ", "b"], // x2
+    ["Q", " ", " ", " ", " ", " ", " ", "q"], // x3
+    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
+    ["B", " ", " ", " ", " ", " ", " ", "b"], // x5
+    ["N", " ", " ", " ", " ", " ", " ", "n"], // x6
+    ["R", " ", " ", " ", " ", " ", " ", "r"]  // x7
   ];
 }
 
@@ -36,11 +36,14 @@ function init_inf() { // куда можно хидить
 }
 
 function can_move(sx, sy, dx, dy){
-  if (!can_move_from(sx, sy))
-    return false;
-  if (!can_move_to(dx, dy))
-    return false;
-  return is_correct_move(sx, sy, dx, dy);
+  if (!can_move_from(sx, sy)) return false;
+  if (!can_move_to(dx, dy)) return false;
+  if (!is_correct_move(sx, sy, dx, dy)) return false;
+  return !is_check();
+}
+
+function is_check() {
+  return Math.random() < 0.2;
 }
 
 function is_correct_move(sx, sy, dx, dy) {
