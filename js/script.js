@@ -41,15 +41,25 @@ function can_move(sx, sy, dx, dy){
   if (!can_move_from(sx, sy)) return false;
   if (!can_move_to(dx, dy)) return false;
   if (!is_correct_move(sx, sy, dx, dy)) return false;
-  return !is_check();
+  return !is_check(sx, sy, dx, dy);  // шах
 }
 
-function is_check() {
-  // 1. Сделать ход белых
-  // 2. найти короля белых
+function is_check(sx, sy, dx, dy) {  // шах
+  move_figure(sx, sy, dx, dy); // 1. Сделать ход белых
+  king = find_figure("K");     // 2. найти короля белых
+  if (king.x >= 0)
+    map[king.x][king.y] = "P";
   // 3. перебрать все чёрные фигуры
   // 4. проверить, может ли чёрная фигура пойти на клетку корля
-  // 5. вернуть ход
+  back_figure(sx, sy, dx, dy); // 5. вернуть ход
+}
+
+function find_figure(figure) { // 2. найти короля белых
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (map[x][y] == figure)
+        return {x:x, y:y};
+  return {x: -1, y: -1};
 }
 
 function is_correct_move(sx, sy, dx, dy) {
