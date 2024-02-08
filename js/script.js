@@ -8,6 +8,7 @@ let pawn_attack_x; // координаты битого поля
 let pawn_attack_y;
 let from_figure;
 let to_figure;
+let possible_moves;
 
 function  init_map() {    // массив позиции
   map =
@@ -46,20 +47,32 @@ function can_move(sx, sy, dx, dy){
 
 function is_check_after_move(sx, sy, dx, dy) {
   move_figure(sx, sy, dx, dy);                           // 1. Сделать ход белых
-  let check = is_check(move_color == "white" ? "black" : "white");
+  turn_move();
+  let check = is_check();
+  turn_move();
   back_figure(sx, sy, dx, dy);                           // 5. вернуть ход
   return check;
 }
 
-function is_check(for_color) {                      // шах
-  king = find_figure(for_color == "white" ? "k" : "K");
+function is_check() {                      // шах
+  king = find_figure(move_color == "white" ? "k" : "K");
   // 2. если ход белых - будем искать чёрного короля, чтобы его съесть
   for (let x = 0; x <= 7; x++)                           // 3. если ход белых - перебраем белые фигуры
     for (let y = 0; y <= 7; y++)
-      if (get_color(x, y) == for_color)
+      if (get_color(x, y) == move_color)
         if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли фигура съесть короля
           return true;
   return false;
+}
+
+function is_checkmate() {
+  if (!is_check()) return false;
+  return possible_moves == 0;
+}
+
+function is_stalemate() {
+  if (is_check()) return false;
+  return possible_moves == 0;
 }
 
 function find_figure(figure) { // 2. найти короля белых
@@ -187,13 +200,16 @@ function is_pawn_passant(sx, sy, dx, dy, sign) { // Порверка битог�
 }
 
 function mark_moves_from() { // (урок 6)
+  possible_moves = 0;
   init_inf();
   for (let sx = 0; sx <= 7; sx++)
     for (let sy = 0; sy <= 7; sy++)
       for (let dx = 0; dx <= 7; dx++)
         for (let dy = 0; dy <= 7; dy++)
-          if (can_move(sx, sy, dx, dy))
+          if (can_move(sx, sy, dx, dy)) {
             inf[sx][sy] = 1;
+            possible_moves ++;
+          }
 }
 
 function mark_moves_to(){
@@ -340,6 +356,20 @@ function show_map() {    // вывод доски
     html += "<td style='text-align: center'>" + x1[x] + "</td>"
   html += "</table>";
   document.getElementById("chess").innerHTML = html;
+  show_info();
+}
+
+function show_info() {
+  let html = "Turns: " + move_color;
+  turn_move();
+  if (is_checkmate())
+    html += " CHECKMATE";
+  else if (is_stalemate())
+    html += " STALEMATE";
+  else if (is_check())
+    html += " CHECK";
+  turn_move();
+  document.getElementById("info").innerHTML = html;
 }
 
 function start(){
