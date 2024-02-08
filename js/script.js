@@ -44,14 +44,19 @@ function can_move(sx, sy, dx, dy){
   return !is_check(sx, sy, dx, dy);  // шах
 }
 
-function is_check(sx, sy, dx, dy) {  // шах
-  move_figure(sx, sy, dx, dy); // 1. Сделать ход белых
-  king = find_figure("K");     // 2. найти короля белых
-  if (king.x >= 0)
-    map[king.x][king.y] = "P";
-  // 3. перебрать все чёрные фигуры
-  // 4. проверить, может ли чёрная фигура пойти на клетку корля
-  back_figure(sx, sy, dx, dy); // 5. вернуть ход
+function is_check(sx, sy, dx, dy) {                      // шах
+  let can_be_eaten = false;
+  move_figure(sx, sy, dx, dy);                           // 1. Сделать ход белых
+  king = find_figure(move_color == "white" ? "K" : "k"); // 2. найти короля белых либо чёрных
+  turn_move();                                           // поменять очерёдность хода
+  for (let x = 0; x <= 7; x++)                           // 3. перебрать все чёрные фигуры либо белые
+    for (let y = 0; y <= 7; y++)
+      if (get_color(x, y) == move_color)
+        if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли чёрная фигура пойти на клетку корля
+          can_be_eaten = true;
+  turn_move();                                           // поменять очерёдность хода
+  back_figure(sx, sy, dx, dy);                           // 5. вернуть ход
+  return can_be_eaten;
 }
 
 function find_figure(figure) { // 2. найти короля белых
@@ -76,7 +81,7 @@ function is_correct_move(sx, sy, dx, dy) {
     return is_correct_rook_move(sx, sy, dx, dy);
   if (is_pawn(figure))
     return is_correct_pawn_move(sx, sy, dx, dy);
-  return true;
+  return false;
 }
 
 function is_king  (figure) { return figure.toUpperCase() == "K"; }
@@ -246,7 +251,7 @@ function click_box_to(to_x, to_y){
 
   check_pawn_attack(from_figure, to_x, to_y);
 
-  turn_move();
+  turn_move();    // поменять очерёдность хода
   mark_moves_from();
   show_map();
 }
