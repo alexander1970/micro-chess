@@ -12,14 +12,14 @@ let to_figure;
 function  init_map() {    // массив позиции
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
-    ["R", " ", " ", " ", " ", " ", " ", "r"], // x0
-    ["N", " ", " ", " ", " ", " ", " ", "n"], // x1
-    ["B", " ", " ", " ", " ", " ", " ", "b"], // x2
-    ["Q", " ", " ", " ", " ", " ", " ", "q"], // x3
-    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
-    ["B", " ", " ", " ", " ", " ", " ", "b"], // x5
-    ["N", " ", " ", " ", " ", " ", " ", "n"], // x6
-    ["R", " ", " ", " ", " ", " ", " ", "r"]  // x7
+    ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
+    ["N", "P", " ", " ", " ", " ", "p", "n"], // x1
+    ["B", "P", " ", " ", " ", " ", "p", "b"], // x2
+    ["Q", "P", " ", " ", " ", " ", "p", "q"], // x3
+    ["K", "P", " ", " ", " ", " ", "p", "k"], // x4
+    ["B", "P", " ", " ", " ", " ", "p", "b"], // x5
+    ["N", "P", " ", " ", " ", " ", "p", "n"], // x6
+    ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
   ];
 }
 
@@ -41,22 +41,25 @@ function can_move(sx, sy, dx, dy){
   if (!can_move_from(sx, sy)) return false;
   if (!can_move_to(dx, dy)) return false;
   if (!is_correct_move(sx, sy, dx, dy)) return false;
-  return !is_check(sx, sy, dx, dy);  // шах
+  return !is_check_after_move(sx, sy, dx, dy);  // шах
 }
 
-function is_check(sx, sy, dx, dy) {                      // шах
-  let can_be_eaten = false;
+function is_check_after_move(sx, sy, dx, dy) {
   move_figure(sx, sy, dx, dy);                           // 1. Сделать ход белых
-  king = find_figure(move_color == "white" ? "K" : "k"); // 2. найти короля белых либо чёрных
-  turn_move();                                           // поменять очерёдность хода
-  for (let x = 0; x <= 7; x++)                           // 3. перебрать все чёрные фигуры либо белые
-    for (let y = 0; y <= 7; y++)
-      if (get_color(x, y) == move_color)
-        if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли чёрная фигура пойти на клетку корля
-          can_be_eaten = true;
-  turn_move();                                           // поменять очерёдность хода
+  let check = is_check(move_color == "white" ? "black" : "white");
   back_figure(sx, sy, dx, dy);                           // 5. вернуть ход
-  return can_be_eaten;
+  return check;
+}
+
+function is_check(for_color) {                      // шах
+  king = find_figure(for_color == "white" ? "k" : "K");
+  // 2. если ход белых - будем искать чёрного короля, чтобы его съесть
+  for (let x = 0; x <= 7; x++)                           // 3. если ход белых - перебраем белые фигуры
+    for (let y = 0; y <= 7; y++)
+      if (get_color(x, y) == for_color)
+        if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли фигура съесть короля
+          return true;
+  return false;
 }
 
 function find_figure(figure) { // 2. найти короля белых
