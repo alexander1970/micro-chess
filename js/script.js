@@ -9,18 +9,21 @@ let pawn_attack_y;
 let from_figure;
 let to_figure;
 let possible_moves;
+let save_pawn_x = -1;
+let save_pawn_y = -1;
+let save_pawn_figure = " ";
 
 function  init_map() {    // массив позиции
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
     ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
-    ["N", "P", " ", " ", " ", " ", "p", "n"], // x1
-    ["B", "P", " ", " ", " ", " ", "p", "b"], // x2
+    ["N", "P", " ", "K", " ", " ", "p", "n"], // x1
+    ["B", "P", " ", "p", "P", " ", " ", "b"], // x2
     ["Q", "P", " ", " ", " ", " ", "p", "q"], // x3
-    ["K", "P", " ", " ", " ", " ", "p", "k"], // x4
-    ["B", "P", " ", " ", " ", " ", "p", "b"], // x5
-    ["N", "P", " ", " ", " ", " ", "p", "n"], // x6
-    ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
+    ["K", "P", " ", " ", "k", " ", "p", " "], // x4
+    ["B", "P", " ", " ", "P", " ", "p", "b"], // x5
+    ["N", " ", " ", " ", " ", " ", "p", "n"], // x6
+    ["R", " ", " ", " ", " ", " ", "p", "r"]  // x7
   ];
 }
 
@@ -257,15 +260,18 @@ function move_figure(sx, sy, dx, dy) { // 1. Сделать ход белых
   to_figure = map[dx][dy];
   map[dx][dy] = from_figure;
   map[sx][sy] = " ";
+  move_pawn_attack(from_figure, dx, dy);
 }
 
 function back_figure(sx, sy, dx, dy) { // 5. вернуть ход
   map[sx][sy] = from_figure;
   map[dx][dy] = to_figure;
+  back_pawn_attack();
 }
 
 function click_box_to(to_x, to_y){
   move_figure(move_from_x, move_from_y, to_x, to_y);
+
   promote_pawn(from_figure, to_x, to_y);
 
   check_pawn_attack(from_figure, to_x, to_y);
@@ -293,16 +299,26 @@ function promote_pawn(from_figure, to_x, to_y) {
   map[to_x][to_y] = figure;
 }
 
-function check_pawn_attack(from_figure, to_x, to_y) {
+function move_pawn_attack(from_figure, to_x, to_y) {
   if (is_pawn(from_figure))
-    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
-      if (move_color == "white")
-        map[to_x][to_y - 1] = " "; // white
-      else
-        map[to_x][to_y + 1] = " "; // black
+    if (to_x == pawn_attack_x && to_y == pawn_attack_y) {
+      let y = move_color == "white" ? to_y - 1 : to_y + 1;
+      save_pawn_figure = map[to_x][y];
+      save_pawn_x = to_x;
+      save_pawn_y = y;
+      map[to_x][y] = " ";
+    }
+}
 
+function back_pawn_attack() {
+  if (save_pawn_x == -1) return;
+  map[save_pawn_x][save_pawn_y] = save_pawn_figure;
+}
+
+function check_pawn_attack(from_figure, to_x, to_y) {
   pawn_attack_x = -1;
   pawn_attack_y = -1;
+  save_pawn_x = -1;
   if (is_pawn(from_figure))
     if (Math.abs(to_y - move_from_y) == 2){   // строка 262 (урок 25)
       pawn_attack_x = move_from_x;
