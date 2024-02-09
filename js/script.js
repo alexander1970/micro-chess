@@ -12,18 +12,26 @@ let possible_moves;
 let save_pawn_x = -1;
 let save_pawn_y = -1;
 let save_pawn_figure = " ";
+let can_white_castle_left = true;
+let can_white_castle_right = true;
+let can_black_castle_left = true;
+let can_black_castle_right = true;
 
 function  init_map() {    // массив позиции
+  can_white_castle_left = true;
+  can_white_castle_right = true;
+  can_black_castle_left = true;
+  can_black_castle_right = true;
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
-    ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
-    ["N", "P", " ", "K", " ", " ", "p", "n"], // x1
-    ["B", "P", " ", "p", "P", " ", " ", "b"], // x2
-    ["Q", "P", " ", " ", " ", " ", "p", "q"], // x3
-    ["K", "P", " ", " ", "k", " ", "p", " "], // x4
-    ["B", "P", " ", " ", "P", " ", "p", "b"], // x5
-    ["N", " ", " ", " ", " ", " ", "p", "n"], // x6
-    ["R", " ", " ", " ", " ", " ", "p", "r"]  // x7
+    ["R", " ", " ", " ", " ", " ", " ", "r"], // x0
+    ["b", "P", " ", " ", " ", " ", "p", " "], // x1
+    [" ", " ", " ", " ", " ", " ", " ", " "], // x2
+    [" ", " ", " ", " ", " ", " ", " ", " "], // x3
+    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
+    [" ", " ", " ", " ", " ", " ", " ", " "], // x5
+    [" ", " ", " ", " ", " ", " ", " ", " "], // x6
+    ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
   ];
 }
 
@@ -275,10 +283,34 @@ function click_box_to(to_x, to_y){
   promote_pawn(from_figure, to_x, to_y);
 
   check_pawn_attack(from_figure, to_x, to_y);
+  check_castle_moves(move_from_x, move_from_y, to_x, to_y);
 
   turn_move();    // поменять очерёдность хода
   mark_moves_from();
   show_map();
+}
+
+function check_castle_moves(from_x, from_y, to_x, to_y) {
+  let figure = map[to_x][to_y];
+  if ( figure == "K") {
+    can_white_castle_right = false;
+    can_white_castle_left = false;
+  }
+
+  if (figure == "k") {
+    can_black_castle_right = false;
+    can_black_castle_left = false;
+  }
+
+  if (figure == "R" && from_x == 0 && from_y == 0)
+    can_white_castle_left = false;
+  if (figure == "R" && from_x == 7 && from_y == 0)
+    can_white_castle_right = false;
+
+  if (figure == "r" && from_x == 0 && from_y == 7)
+    can_black_castle_left = false;
+  if (figure == "r" && from_x == 7 && from_y == 7)
+    can_black_castle_right = false;
 }
 
 function promote_pawn(from_figure, to_x, to_y) {
@@ -385,6 +417,11 @@ function show_info() {
   else if (is_check())
     html += " CHECK";
   turn_move();
+  html +=
+    (can_white_castle_left ?  'WCL ' : '') +
+    (can_white_castle_right ? 'WCR ' : '') +
+    (can_black_castle_left ?  'BCL ' : '') +
+    (can_black_castle_right ? 'BCR ' : '');
   document.getElementById("info").innerHTML = html;
 }
 
