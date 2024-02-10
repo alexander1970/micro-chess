@@ -122,22 +122,32 @@ function is_correct_king_move(sx, sy, dx, dy) {
 }
 
 function can_castle(sx, sy, dx, dy) {
-  if (dy != sy) return false;
-  if (Math.abs(dx - sx) != 2) return false;
-  let checkked = is_check();
-  if (checkked) return false;
-  if (map[sx][sy] == "K" && sx == 4 && sy == 0)
-    return can_white_castle(dx, dy);
-  if (map[sx][sy] == "k" && sx == 4 && sy == 7)
-    return can_black_castle(dx, dy);
+  let figure = map[sx][sy];
+  if (figure == "K" && sx == 4 && sy == 0) {
+    if (dx == 6 && dy == 0) return can_white_cr();
+    if (dx == 2 && dy == 0) return can_white_cl();
+  }
+  else
+  if (figure == "k" && sx == 4 && sy == 7) {
+    if (dx == 6 && dy == 7) return can_black_cr();
+    if (dx == 2 && dy == 7) return can_black_cl();
+  }
   return false;
 }
 
-function can_white_castle(dx, dy) {
+function can_white_cr() {
   return true;
 }
 
-function can_black_castle(dx, dy) {
+function can_white_cl() {
+  return true;
+}
+
+function can_black_cr() {
+  return true;
+}
+
+function can_black_cl() {
   return true;
 }
 
