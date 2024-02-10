@@ -28,7 +28,7 @@ function  init_map() {    // массив позиции
     ["b", "P", " ", " ", " ", " ", "p", " "], // x1
     [" ", " ", " ", " ", " ", " ", " ", " "], // x2
     [" ", " ", " ", " ", " ", " ", " ", " "], // x3
-    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
+    ["K", " ", " ", " ", "q", " ", " ", "k"], // x4
     [" ", " ", " ", " ", " ", " ", " ", " "], // x5
     [" ", " ", " ", " ", " ", " ", " ", " "], // x6
     ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
@@ -58,19 +58,17 @@ function can_move(sx, sy, dx, dy){
 
 function is_check_after_move(sx, sy, dx, dy) {
   move_figure(sx, sy, dx, dy);                           // 1. Сделать ход белых
-  turn_move();
   let check = is_check();
-  turn_move();
   back_figure(sx, sy, dx, dy);                           // 5. вернуть ход
   return check;
 }
 
 function is_check() {                      // шах
-  king = find_figure(move_color == "white" ? "k" : "K");
+  king = find_figure(move_color == "white" ? "K" : "k");
   // 2. если ход белых - будем искать чёрного короля, чтобы его съесть
   for (let x = 0; x <= 7; x++)                           // 3. если ход белых - перебраем белые фигуры
     for (let y = 0; y <= 7; y++)
-      if (get_color(x, y) == move_color)
+      if (get_color(x, y) != move_color)
         if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли фигура съесть короля
           return true;
   return false;
@@ -126,6 +124,8 @@ function is_correct_king_move(sx, sy, dx, dy) {
 function can_castle(sx, sy, dx, dy) {
   if (dy != sy) return false;
   if (Math.abs(dx - sx) != 2) return false;
+  let checkked = is_check();
+  if (checkked) return false;
   if (map[sx][sy] == "K" && sx == 4 && sy == 0)
     return can_white_castle(dx, dy);
   if (map[sx][sy] == "k" && sx == 4 && sy == 7)
@@ -409,7 +409,7 @@ function show_map() {    // вывод доски
       html += "<td style='width: 50px; height: 50px; " +
                           "background-color: " + color + "; " +
                           "text-align: center; " +
-                          "font-size: 40px; " +
+                          "font-size: 36px; " +
                           "color: #000; " +
                           "' onclick='click_box(" + x + ", " + y + ");'>";
       html += figure_to_html(map[x][y]);
@@ -428,14 +428,12 @@ function show_map() {    // вывод доски
 
 function show_info() {
   let html = "Turns: " + move_color;
-  turn_move();
   if (is_checkmate())
     html += " CHECKMATE";
   else if (is_stalemate())
     html += " STALEMATE";
   else if (is_check())
     html += " CHECK";
-  turn_move();
   html +=
     (can_white_castle_left ?  'WCL ' : '') +
     (can_white_castle_right ? 'WCR ' : '') +
