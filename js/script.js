@@ -119,7 +119,26 @@ function is_rook  (figure) { return figure.toUpperCase() == "R"; }
 function is_pawn  (figure) { return figure.toUpperCase() == "P"; }
 
 function is_correct_king_move(sx, sy, dx, dy) {
-  return (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1);
+  if (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1) return true;
+  return (can_castle(sx, sy, dx, dy))
+}
+
+function can_castle(sx, sy, dx, dy) {
+  if (dy != sy) return false;
+  if (Math.abs(dx - sx) != 2) return false;
+  if (map[sx][sy] == "K" && sx == 4 && sy == 0)
+    return can_white_castle(dx, dy);
+  if (map[sx][sy] == "k" && sx == 4 && sy == 7)
+    return can_black_castle(dx, dy);
+  return false;
+}
+
+function can_white_castle(dx, dy) {
+  return true;
+}
+
+function can_black_castle(dx, dy) {
+  return true;
 }
 
 function is_correct_line_move(sx, sy, dx, dy, figure) {
