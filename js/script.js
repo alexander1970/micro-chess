@@ -6,8 +6,22 @@ let move_from_x;
 let move_from_y;
 let pawn_attack_x; // координаты битого поля
 let pawn_attack_y;
+let from_figure;
+let to_figure;
+let possible_moves;
+let save_pawn_x = -1;
+let save_pawn_y = -1;
+let save_pawn_figure = " ";
+let can_white_castle_left = true;
+let can_white_castle_right = true;
+let can_black_castle_left = true;
+let can_black_castle_right = true;
 
 function  init_map() {    // массив позиции
+  can_white_castle_left = true;
+  can_white_castle_right = true;
+  can_black_castle_left = true;
+  can_black_castle_right = true;
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
     ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
@@ -36,11 +50,46 @@ function init_inf() { // куда можно хидить
 }
 
 function can_move(sx, sy, dx, dy){
-  if (!can_move_from(sx, sy))
-    return false;
-  if (!can_move_to(dx, dy))
-    return false;
-  return is_correct_move(sx, sy, dx, dy);
+  if (!can_move_from(sx, sy)) return false;
+  if (!can_move_to(dx, dy)) return false;
+  if (!is_correct_move(sx, sy, dx, dy)) return false;
+  return !is_check_after_move(sx, sy, dx, dy);  // шах
+}
+
+function is_check_after_move(sx, sy, dx, dy) {
+  move_figure(sx, sy, dx, dy);                           // 1. Сделать ход белых
+  let check = is_check();
+  back_figure(sx, sy, dx, dy);                           // 5. вернуть ход
+  return check;
+}
+
+function is_check() {                      // шах
+  king = find_figure(move_color == "white" ? "K" : "k");
+  // 2. если ход белых - будем искать чёрного короля, чтобы его съесть
+  for (let x = 0; x <= 7; x++)                           // 3. если ход белых - перебраем белые фигуры
+    for (let y = 0; y <= 7; y++)
+      if (get_color(x, y) != move_color)
+        if (is_correct_move(x, y, king.x, king.y))       // 4. проверить, может ли фигура съесть короля
+          return true;
+  return false;
+}
+
+function is_checkmate() {
+  if (!is_check()) return false;
+  return possible_moves == 0;
+}
+
+function is_stalemate() {
+  if (is_check()) return false;
+  return possible_moves == 0;
+}
+
+function find_figure(figure) { // 2. найти короля белых
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (map[x][y] == figure)
+        return {x:x, y:y};
+  return {x: -1, y: -1};
 }
 
 function is_correct_move(sx, sy, dx, dy) {
@@ -57,7 +106,7 @@ function is_correct_move(sx, sy, dx, dy) {
     return is_correct_rook_move(sx, sy, dx, dy);
   if (is_pawn(figure))
     return is_correct_pawn_move(sx, sy, dx, dy);
-  return true;
+  return false;
 }
 
 function is_king  (figure) { return figure.toUpperCase() == "K"; }
@@ -68,7 +117,60 @@ function is_rook  (figure) { return figure.toUpperCase() == "R"; }
 function is_pawn  (figure) { return figure.toUpperCase() == "P"; }
 
 function is_correct_king_move(sx, sy, dx, dy) {
-  return (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1);
+  if (Math.abs(dx - sx) <= 1 && Math.abs(dy - sy) <= 1) return true;
+  return (can_castle(sx, sy, dx, dy))
+}
+
+function can_castle(sx, sy, dx, dy) {
+  let figure = map[sx][sy];
+  if (figure == "K" && sx == 4 && sy == 0) {
+    if (dx == 6 && dy == 0) return can_white_cr();
+    if (dx == 2 && dy == 0) return can_white_cl();
+  }
+  else
+  if (figure == "k" && sx == 4 && sy == 7) {
+    if (dx == 6 && dy == 7) return can_black_cr();
+    if (dx == 2 && dy == 7) return can_black_cl();
+  }
+  return false;
+}
+
+function can_white_cr() {
+  if (!can_white_castle_right) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 0, 5, 0)) return false;
+  if (!is_empty(5, 0)) return false;
+  if (!is_empty(6, 0)) return false;
+  return map[7][0] == 'R';
+}
+
+function can_white_cl() {
+  if (!can_white_castle_left) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 0, 3, 0)) return false;
+  if (!is_empty(3, 0)) return false;
+  if (!is_empty(2, 0)) return false;
+  if (!is_empty(1, 0)) return false;
+  return map[0][0] == 'R';
+}
+
+function can_black_cr() {
+  if (!can_black_castle_right) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 7, 5, 7)) return false;
+  if (!is_empty(5, 7)) return false;
+  if (!is_empty(6, 7)) return false;
+  return map[7][7] == 'r';
+}
+
+function can_black_cl() {
+  if (!can_black_castle_left) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 7, 3, 7)) return false;
+  if (!is_empty(3, 7)) return false;
+  if (!is_empty(2, 7)) return false;
+  if (!is_empty(1, 7)) return false;
+  return map[0][7] == 'r';
 }
 
 function is_correct_line_move(sx, sy, dx, dy, figure) {
@@ -160,13 +262,16 @@ function is_pawn_passant(sx, sy, dx, dy, sign) { // Порверка битог�
 }
 
 function mark_moves_from() { // (урок 6)
+  possible_moves = 0;
   init_inf();
   for (let sx = 0; sx <= 7; sx++)
     for (let sy = 0; sy <= 7; sy++)
       for (let dx = 0; dx <= 7; dx++)
         for (let dy = 0; dy <= 7; dy++)
-          if (can_move(sx, sy, dx, dy))
+          if (can_move(sx, sy, dx, dy)) {
             inf[sx][sy] = 1;
+            possible_moves ++;
+          }
 }
 
 function mark_moves_to(){
@@ -209,26 +314,69 @@ function click_box_from(x, y){
   show_map();
 }
 
+function move_figure(sx, sy, dx, dy) { // 1. Сделать ход белых
+  from_figure = map[sx][sy];
+  to_figure = map[dx][dy];
+  map[dx][dy] = from_figure;
+  map[sx][sy] = " ";
+  move_pawn_attack(from_figure, dx, dy);
+}
+
+function back_figure(sx, sy, dx, dy) { // 5. вернуть ход
+  map[sx][sy] = from_figure;
+  map[dx][dy] = to_figure;
+  back_pawn_attack();
+}
+
 function click_box_to(to_x, to_y){
-  from_figure = map[move_from_x][move_from_y];
-  to_figure = map[to_x][to_y];
+  move_figure(move_from_x, move_from_y, to_x, to_y);
 
-  pawn_figure = promote_pawn(from_figure, to_y);
-
-  map[to_x][to_y] = pawn_figure == " " ? from_figure : pawn_figure;
-  map[move_from_x][move_from_y] = " ";
-
+  promote_pawn(from_figure, to_x, to_y);
   check_pawn_attack(from_figure, to_x, to_y);
 
-  turn_move();
+  check_castle_moves(move_from_x, move_from_y, to_x, to_y);
+  move_castling_rook(move_from_x, move_from_y, to_x, to_y);
+
+  turn_move();    // поменять очерёдность хода
   mark_moves_from();
   show_map();
 }
 
-function promote_pawn(from_figure, to_y) {
-  if (!is_pawn(from_figure)) return " ";
-  if (!(to_y == 7 || to_y == 0)) return " ";
+function check_castle_moves(from_x, from_y, to_x, to_y) {
+  let figure = map[to_x][to_y];
+  if ( figure == "K") {
+    can_white_castle_right = false;
+    can_white_castle_left = false;
+  }
 
+  if (figure == "k") {
+    can_black_castle_right = false;
+    can_black_castle_left = false;
+  }
+
+  if (figure == "R" && from_x == 0 && from_y == 0)
+    can_white_castle_left = false;
+  if (figure == "R" && from_x == 7 && from_y == 0)
+    can_white_castle_right = false;
+
+  if (figure == "r" && from_x == 0 && from_y == 7)
+    can_black_castle_left = false;
+  if (figure == "r" && from_x == 7 && from_y == 7)
+    can_black_castle_right = false;
+}
+
+function move_castling_rook(from_x, from_y, to_x, to_y) {
+  if (!is_king(map[to_x][to_y])) return;
+  if (Math.abs(to_x - from_x) != 2) return;
+  if (to_x == 6 && to_y == 0) {map[7][0] = ''; map[5][0] = 'R';}
+  if (to_x == 2 && to_y == 0) {map[0][0] = ''; map[3][0] = 'R';}
+  if (to_x == 6 && to_y == 7) {map[7][7] = ''; map[5][7] = 'r';}
+  if (to_x == 2 && to_y == 7) {map[0][7] = ''; map[3][7] = 'r';}
+}
+
+function promote_pawn(from_figure, to_x, to_y) {
+  if (!is_pawn(from_figure)) return;
+  if (!(to_y == 7 || to_y == 0)) return;
   do {
     figure = prompt("Select figure to promote: Q R B N", "Q")
   } while (!(
@@ -237,24 +385,33 @@ function promote_pawn(from_figure, to_y) {
     is_bishop(figure) ||
     is_knight(figure)
   ));
-
   if (move_color == "white")
-    from_figure = figure.toUpperCase();
+    figure = figure.toUpperCase();
   else
-    from_figure =  figure.toLowerCase();
-  return from_figure;
+    figure = figure.toLowerCase();
+  map[to_x][to_y] = figure;
+}
+
+function move_pawn_attack(from_figure, to_x, to_y) {
+  if (is_pawn(from_figure))
+    if (to_x == pawn_attack_x && to_y == pawn_attack_y) {
+      let y = move_color == "white" ? to_y - 1 : to_y + 1;
+      save_pawn_figure = map[to_x][y];
+      save_pawn_x = to_x;
+      save_pawn_y = y;
+      map[to_x][y] = " ";
+    }
+}
+
+function back_pawn_attack() {
+  if (save_pawn_x == -1) return;
+  map[save_pawn_x][save_pawn_y] = save_pawn_figure;
 }
 
 function check_pawn_attack(from_figure, to_x, to_y) {
-  if (is_pawn(from_figure))
-    if (to_x == pawn_attack_x && to_y == pawn_attack_y)
-      if (move_color == "white")
-        map[to_x][to_y - 1] = " "; // white
-      else
-        map[to_x][to_y + 1] = " "; // black
-
   pawn_attack_x = -1;
   pawn_attack_y = -1;
+  save_pawn_x = -1;
   if (is_pawn(from_figure))
     if (Math.abs(to_y - move_from_y) == 2){   // строка 262 (урок 25)
       pawn_attack_x = move_from_x;
@@ -294,7 +451,7 @@ function show_map() {    // вывод доски
       html += "<td style='width: 50px; height: 50px; " +
                           "background-color: " + color + "; " +
                           "text-align: center; " +
-                          "font-size: 40px; " +
+                          "font-size: 36px; " +
                           "color: #000; " +
                           "' onclick='click_box(" + x + ", " + y + ");'>";
       html += figure_to_html(map[x][y]);
@@ -308,6 +465,23 @@ function show_map() {    // вывод доски
     html += "<td style='text-align: center'>" + x1[x] + "</td>"
   html += "</table>";
   document.getElementById("chess").innerHTML = html;
+  show_info();
+}
+
+function show_info() {
+  let html = "Turns: " + move_color;
+  if (is_checkmate())
+    html += " CHECKMATE";
+  else if (is_stalemate())
+    html += " STALEMATE";
+  else if (is_check())
+    html += " CHECK";
+  html +=
+    (can_white_castle_left ?  'WCL ' : '') +
+    (can_white_castle_right ? 'WCR ' : '') +
+    (can_black_castle_left ?  'BCL ' : '') +
+    (can_black_castle_right ? 'BCR ' : '');
+  document.getElementById("info").innerHTML = html;
 }
 
 function start(){
