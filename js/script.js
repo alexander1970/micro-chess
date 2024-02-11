@@ -28,9 +28,9 @@ function  init_map() {    // массив позиции
     ["b", "P", " ", " ", " ", " ", "p", " "], // x1
     [" ", " ", " ", " ", " ", " ", " ", " "], // x2
     [" ", " ", " ", " ", " ", " ", " ", " "], // x3
-    ["K", " ", " ", " ", "q", " ", " ", "k"], // x4
+    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
     [" ", " ", " ", " ", " ", " ", " ", " "], // x5
-    [" ", " ", " ", " ", " ", " ", " ", " "], // x6
+    [" ", " ", " ", " ", "r", " ", " ", " "], // x6
     ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
   ];
 }
@@ -136,19 +136,41 @@ function can_castle(sx, sy, dx, dy) {
 }
 
 function can_white_cr() {
-  return true;
+  if (!can_white_castle_right) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 0, 5, 0)) return false;
+  if (!is_empty(5, 0)) return false;
+  if (!is_empty(6, 0)) return false;
+  return map[7][0] == 'R';
 }
 
 function can_white_cl() {
-  return true;
+  if (!can_white_castle_left) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 0, 3, 0)) return false;
+  if (!is_empty(3, 0)) return false;
+  if (!is_empty(2, 0)) return false;
+  if (!is_empty(1, 0)) return false;
+  return map[0][0] == 'R';
 }
 
 function can_black_cr() {
-  return true;
+  if (!can_black_castle_right) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 7, 5, 7)) return false;
+  if (!is_empty(5, 7)) return false;
+  if (!is_empty(6, 7)) return false;
+  return map[7][7] == 'r';
 }
 
 function can_black_cl() {
-  return true;
+  if (!can_black_castle_left) return false;
+  if (is_check()) return false;
+  if (is_check_after_move(4, 7, 3, 7)) return false;
+  if (!is_empty(3, 7)) return false;
+  if (!is_empty(2, 7)) return false;
+  if (!is_empty(1, 7)) return false;
+  return map[0][7] == 'r';
 }
 
 function is_correct_line_move(sx, sy, dx, dy, figure) {
