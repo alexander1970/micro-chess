@@ -24,13 +24,13 @@ function  init_map() {    // массив позиции
   can_black_castle_right = true;
   map =
   [// y0,  y1,  y2,  y3,  y4,  y5,  y6,  y7
-    ["R", " ", " ", " ", " ", " ", " ", "r"], // x0
-    ["b", "P", " ", " ", " ", " ", "p", " "], // x1
-    [" ", " ", " ", " ", " ", " ", " ", " "], // x2
-    [" ", " ", " ", " ", " ", " ", " ", " "], // x3
-    ["K", " ", " ", " ", " ", " ", " ", "k"], // x4
-    [" ", " ", " ", " ", " ", " ", " ", " "], // x5
-    [" ", " ", " ", " ", "r", " ", " ", " "], // x6
+    ["R", "P", " ", " ", " ", " ", "p", "r"], // x0
+    ["N", "P", " ", " ", " ", " ", "p", "n"], // x1
+    ["B", "P", " ", " ", " ", " ", "p", "b"], // x2
+    ["Q", "P", " ", " ", " ", " ", "p", "q"], // x3
+    ["K", "P", " ", " ", " ", " ", "p", "k"], // x4
+    ["B", "P", " ", " ", " ", " ", "p", "b"], // x5
+    ["N", "P", " ", " ", " ", " ", "p", "n"], // x6
     ["R", "P", " ", " ", " ", " ", "p", "r"]  // x7
   ];
 }
@@ -332,9 +332,10 @@ function click_box_to(to_x, to_y){
   move_figure(move_from_x, move_from_y, to_x, to_y);
 
   promote_pawn(from_figure, to_x, to_y);
-
   check_pawn_attack(from_figure, to_x, to_y);
+
   check_castle_moves(move_from_x, move_from_y, to_x, to_y);
+  move_castling_rook(move_from_x, move_from_y, to_x, to_y);
 
   turn_move();    // поменять очерёдность хода
   mark_moves_from();
@@ -362,6 +363,15 @@ function check_castle_moves(from_x, from_y, to_x, to_y) {
     can_black_castle_left = false;
   if (figure == "r" && from_x == 7 && from_y == 7)
     can_black_castle_right = false;
+}
+
+function move_castling_rook(from_x, from_y, to_x, to_y) {
+  if (!is_king(map[to_x][to_y])) return;
+  if (Math.abs(to_x - from_x) != 2) return;
+  if (to_x == 6 && to_y == 0) {map[7][0] = ''; map[5][0] = 'R';}
+  if (to_x == 2 && to_y == 0) {map[0][0] = ''; map[3][0] = 'R';}
+  if (to_x == 6 && to_y == 7) {map[7][7] = ''; map[5][7] = 'r';}
+  if (to_x == 2 && to_y == 7) {map[0][7] = ''; map[3][7] = 'r';}
 }
 
 function promote_pawn(from_figure, to_x, to_y) {
