@@ -1,5 +1,6 @@
 let map = Array();
 let inf = Array();
+let att = Array();
 
 let move_color = "white";
 let move_from_x;
@@ -46,6 +47,20 @@ function init_inf() { // куда можно хидить
     [" ", " ", " ", " ", " ", " ", " ", " ",],
     [" ", " ", " ", " ", " ", " ", " ", " ",],
     [" ", " ", " ", " ", " ", " ", " ", " ",]
+  ];
+}
+
+function init_att() {
+  att =
+  [
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,],
+    [0, 0, 0, 0, 0, 0, 0, 0,]
   ];
 }
 
@@ -282,6 +297,23 @@ function mark_moves_to(){
         inf[x][y] = 2;
 }
 
+function mark_attack() {
+  turn_move();
+  init_att();
+  let eat = move_color == "white" ? "p" : "P";
+  for (let sx = 0; sx <= 7; sx++)
+    for (let sy = 0; sy <= 7; sy++)
+      for (let dx = 0; dx <= 7; dx++)
+        for (let dy = 0; dy <= 7; dy++) {
+          let f = map[dx][dy];
+          map[dx][dy] = eat;
+          if (can_move(sx, sy, dx, dy))
+            att[dx][dy]++;
+          map[dx][dy] = f;
+        }
+  turn_move();
+}
+
 function can_move_from(x, y) {
   if (!on_map(x, y)) return false;
   return get_color(x, y) == move_color;
@@ -311,6 +343,7 @@ function click_box_from(x, y){
   move_from_x = x;
   move_from_y = y;
   mark_moves_to();
+  mark_attack();
   show_map();
 }
 
@@ -448,10 +481,19 @@ function show_map() {    // вывод доски
         color = (x + y) % 2 ? "#eeffee" : "#abcdef";
       else
         color = inf[x][y] == "1" ? "#aaffaa" : "#ffaaaa";
+      if (att[x][y] > 0) {
+        brColor = "#FF5533";
+        brWidth = (2 * att[x][y]) + "px";
+      } else {
+        brColor = "#888";
+        brWidth = "1px";
+      }
       html += "<td style='width: 50px; height: 50px; " +
                           "background-color: " + color + "; " +
                           "text-align: center; " +
                           "font-size: 36px; " +
+                          "border-color:" + brColor + "; " +
+                          "border-width:" + brWidth + "; " +
                           "color: #000; " +
                           "' onclick='click_box(" + x + ", " + y + ");'>";
       html += figure_to_html(map[x][y]);
@@ -487,6 +529,7 @@ function show_info() {
 function start(){
   init_map();
   mark_moves_from();
+  mark_attack();
   show_map();
 }
 
