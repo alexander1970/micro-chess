@@ -64,6 +64,32 @@ function init_att() {
   ];
 }
 
+function doRandMove() {
+  let ones = 0;
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (inf[x][y] == "1") ones++;
+  if (ones == 0) return;
+  let nr1 = Math.floor(Math.random() * ones);
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (inf[x][y] == "1")
+        if (nr1 -- == 0)
+          click_box_from(x, y);
+
+  let twos = 0;
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (inf[x][y] == "2") twos++;
+  if (ones == 0) return;
+  let nr2 = Math.floor(Math.random() * twos);
+  for (let x = 0; x <= 7; x++)
+    for (let y = 0; y <= 7; y++)
+      if (inf[x][y] == "2")
+        if (nr2 -- == 0)
+          click_box_to(x, y);
+}
+
 function can_move(sx, sy, dx, dy){
   if (!can_move_from(sx, sy)) return false;
   if (!can_move_to(dx, dy)) return false;
@@ -481,13 +507,13 @@ function show_map() {    // вывод доски
         color = (x + y) % 2 ? "#eeffee" : "#abcdef";
       else
         color = inf[x][y] == "1" ? "#aaffaa" : "#ffaaaa";
-      if (att[x][y] > 0) {
+      /* if (att[x][y] > 0) {
         brColor = "#FF5533";
         brWidth = (2 * att[x][y]) + "px";
-      } else {
+      } else {*/
         brColor = "#888";
         brWidth = "1px";
-      }
+      // }
       html += "<td style='width: 50px; height: 50px; " +
                           "background-color: " + color + "; " +
                           "text-align: center; " +
